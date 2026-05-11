@@ -5,14 +5,28 @@ import { doc, getDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import Link from "next/link";
 
-export default function Hero() {
+export default function Hero({city}) {
    const [data, setData] = useState({
   title: "Advanced Diagnostic Solutions.",
   description: "Delivering high-quality medical equipment & consumables for hospitals, labs & healthcare professionals.",
   button1Text: "Explore Services",
   button2Text: "Contact Us",
 });
+const currentCity = city || "jaipur";
 
+// format city
+const formatCity = (name = "") =>
+  name
+    .split("-")
+    .map(
+      (w) =>
+        w.charAt(0).toUpperCase() + w.slice(1)
+    )
+    .join(" ");
+
+const citySlug = currentCity;
+
+const cityName = formatCity(currentCity);
   useEffect(() => {
     const fetchData = async () => {
       const snap = await getDoc(
@@ -39,22 +53,22 @@ export default function Hero() {
             </span>
 
             <h1 className="fw-bold display-4">
-              {data?.title}
+              {data?.title} {cityName && `in ${cityName}`}
             </h1>
 
             <p className="mt-3 text-light">
-              {data?.description}
+              {data?.description} {cityName && `available in ${cityName}`}
             </p>
 
             <div className="mt-4 d-flex gap-3">
               <Link
-                href={data?.button1Link || "/services"}
+                href={data?.button1Link || `/${citySlug}/services`}
                 className="btn btn-success px-4 py-2"
               >
                 {data?.button1Text }
               </Link>
 
-              <Link href={data?.button2Link || "/contact"}>
+              <Link href={data?.button2Link || `/${citySlug}/contact`}>
                 <button className="btn btn-outline-light px-4 py-2">
                   {data?.button2Text}
                 </button>

@@ -11,7 +11,7 @@ import {
   getDoc
 } from "firebase/firestore";
 
-export default function Contact() {
+export default function Contact({city} ) {
 
   const [loading, setLoading] = useState(true);
 
@@ -47,7 +47,22 @@ export default function Contact() {
 
     load();
   }, []);
+// current city
+const currentCity = city || "jaipur";
 
+// format city
+const formatCity = (name = "") =>
+  name
+    .split("-")
+    .map(
+      (w) =>
+        w.charAt(0).toUpperCase() + w.slice(1)
+    )
+    .join(" ");
+
+const citySlug = currentCity;
+
+const cityName = formatCity(currentCity);
   // ✅ FIXED CHANGE HANDLER
   const handleChange = (e) => {
     setForm({
@@ -143,7 +158,13 @@ export default function Contact() {
 
                       <div>
                         <strong>{item.label}</strong>
-                        <p>{item.value}</p>
+                       <p>
+  {
+    item.label.toLowerCase().includes("address")
+      ? item.value || `${cityName}, India`
+      : item.value
+  }
+</p>
                       </div>
 
                     </div>
@@ -234,7 +255,7 @@ export default function Contact() {
       <section className="map-section">
         <div className="container-fluid p-0">
           <iframe
-            src="https://maps.google.com/maps?q=Jaipur&t=&z=15&ie=UTF8&iwloc=&output=embed"
+            src={`https://maps.google.com/maps?q=${cityName},India&output=embed`}
             width="100%"
             height="400"
             style={{ border: 0 }}

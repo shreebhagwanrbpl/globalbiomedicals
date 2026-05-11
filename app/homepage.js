@@ -1,13 +1,28 @@
 "use client";
-
+import Hero from "./components/Hero";
 import { useEffect, useState } from "react";
 import { doc, getDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import Link from "next/link";
-export default function Home() {
+export default function Home({ city } ) {
   const [services, setServices] = useState([]);
   const [products, setProducts] = useState([]);
+// current city
+const currentCity = city || "jaipur";
 
+// format city
+const formatCity = (name = "") =>
+  name
+    .split("-")
+    .map(
+      (w) =>
+        w.charAt(0).toUpperCase() + w.slice(1)
+    )
+    .join(" ");
+
+const citySlug = currentCity;
+
+const cityName = formatCity(currentCity);
 useEffect(() => {
   const fetchData = async () => {
     const snap = await getDoc(
@@ -49,6 +64,7 @@ useEffect(() => {
 
   return (
     <>
+   <Hero city={city} />
       {/* SERVICES */}
   <section className="py-5 bg-light">
       <div className="container-fluid px-5 text-center">

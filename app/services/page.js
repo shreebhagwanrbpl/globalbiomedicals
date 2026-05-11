@@ -4,9 +4,26 @@ import { useEffect, useState } from "react";
 import { doc, getDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 
-export default function Services() {
+export default function Services({ city }) {
   const [services, setServices] = useState([]);
+// current city
+const currentCity = city || "jaipur";
 
+// format city
+const formatCity = (name = "") =>
+  name
+    .split("-")
+    .map(
+      (w) =>
+        w.charAt(0).toUpperCase() + w.slice(1)
+    )
+    .join(" ");
+
+const citySlug = currentCity
+  ?.toLowerCase()
+  ?.replace(/\s+/g, "-");
+
+const cityName = formatCity(currentCity);
   // 🔥 FETCH DATA
   useEffect(() => {
     const fetchData = async () => {
@@ -43,10 +60,10 @@ export default function Services() {
       <section className="services-hero text-center">
         <div className="container">
           <h1 className="fw-bold display-4">
-            Our <span>Services</span>
+           Our <span>Services</span> {cityName && `in ${cityName}`}
           </h1>
           <p className="mt-3">
-            Comprehensive medical and diagnostic solutions for modern healthcare
+          Comprehensive medical and diagnostic solutions for modern healthcare in {cityName}
           </p>
         </div>
       </section>
@@ -83,7 +100,10 @@ export default function Services() {
       <section className="cta text-center">
         <div className="container">
           <h2>Need Medical Solutions?</h2>
-          <p>Contact us today for best diagnostic equipment</p>
+         <p>
+  Contact us today for best diagnostic equipment
+  {cityName && ` in ${cityName}`}
+</p>
           <button className="btn btn-light px-4 mt-2">
             Get in Touch
           </button>

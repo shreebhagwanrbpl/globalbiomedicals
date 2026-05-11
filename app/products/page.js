@@ -6,12 +6,29 @@ import { db } from "@/lib/firebase";
 import Link from "next/link";
 import "./product.css";
 import { addDoc, collection, serverTimestamp } from "firebase/firestore";
-export default function Products() {
+export default function Products({ city }) {
   const [search, setSearch] = useState("");
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [products, setProducts] = useState([]);
   const [quoteModal, setQuoteModal] = useState(false);
+// current city
+const currentCity = city || "jaipur";
 
+// format city
+const formatCity = (name = "") =>
+  name
+    .split("-")
+    .map(
+      (w) =>
+        w.charAt(0).toUpperCase() + w.slice(1)
+    )
+    .join(" ");
+
+const citySlug = currentCity
+  ?.toLowerCase()
+  ?.replace(/\s+/g, "-");
+
+const cityName = formatCity(currentCity);
 const [form, setForm] = useState({
   name: "",
   email: "",
@@ -113,7 +130,9 @@ const handleSubmit = async () => {
 />
       {/* HEADER */}
       <div className="container-fluid px-5 py-5 text-center">
-        <h1 className="fw-bold display-4">Our Products</h1>
+       <h1 className="fw-bold display-4">
+  Our Products {cityName && `in ${cityName}`}
+</h1>
 
         <input
           type="text"
@@ -152,13 +171,19 @@ const handleSubmit = async () => {
   <div><b>Usage:</b> {item.usage || "-"}</div>
 
 </div>
-
-                    <button
-                      className="btn btn-success w-100"
-                      onClick={() => setSelectedProduct(item)}
-                    >
-                      View Details
-                    </button>
+<Link
+  href={`/${citySlug}/${
+    item.title
+      ?.toLowerCase()
+      .trim()
+      .replace(/[^a-z0-9\s-]/g, "")
+      .replace(/\s+/g, "-")
+  }`}
+>
+  <button className="btn btn-success w-100">
+    View Details
+  </button>
+</Link>
                   </div>
 
                 </div>
@@ -283,7 +308,7 @@ const handleSubmit = async () => {
       Get Quote
     </button>
 
-    <Link href="/contact">
+    <Link href={`/${citySlug}/contact`}>
       <button className="btn btn-outline-dark w-100">
         Enquiry
       </button>
