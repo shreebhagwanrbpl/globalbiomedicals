@@ -10,8 +10,10 @@ import {
   doc,
   getDoc
 } from "firebase/firestore";
+import { usePathname } from "next/navigation";
 
-export default function Contact({city} ) {
+
+export default function Contact() {
 
   const [loading, setLoading] = useState(true);
 
@@ -48,9 +50,31 @@ export default function Contact({city} ) {
     load();
   }, []);
 // current city
-const currentCity = city || "jaipur";
+const pathname = usePathname();
+
+const pathParts = pathname
+  .split("/")
+  .filter(Boolean);
+
+const reservedRoutes = [
+  "about",
+  "contact",
+  "item",
+  "items",
+  "products",
+  "services",
+];
+
+const currentCity =
+  pathParts[0] &&
+  !reservedRoutes.includes(pathParts[0])
+    ? pathParts[0]
+    : "jaipur";
 
 // format city
+
+
+// format cityx`
 const formatCity = (name = "") =>
   name
     .split("-")
@@ -107,6 +131,10 @@ const cityName = formatCity(currentCity);
     }
   };
 
+
+
+  
+
   return (
     <div className="contact-page">
             <Toaster position="top-right" />
@@ -158,13 +186,15 @@ const cityName = formatCity(currentCity);
 
                       <div>
                         <strong>{item.label}</strong>
-                       <p>
-  {
-    item.label.toLowerCase().includes("address")
-      ? item.value || `${cityName}, India`
-      : item.value
-  }
-</p>
+                     <p>
+                          {
+                            item.label.toLowerCase().includes("address")
+                              ? currentCity === "jaipur"
+                                ? "F-4, 1st Floor, Plot No. 16, D-Block Tagor Nagar, on Ajmer-Delhi, 200 Feet Bypass Rd, Jaipur, Rajasthan 302021"
+                                : `${cityName}, India`
+                              : item.value
+                          }
+                        </p>
                       </div>
 
                     </div>
@@ -176,71 +206,69 @@ const cityName = formatCity(currentCity);
 
             {/* RIGHT FORM */}
             <div className="col-lg-7">
-
               <div className="contact-form">
-
                 <div className="row g-3">
                  <div className="col-md-6">
-  <input
-    type="text"
-    name="name"
-    placeholder="Your Name"
-    className="input-field"
-    value={form.name}
-    onChange={handleChange}
-  />
-</div>
+                <input
+                  type="text"
+                  name="name"
+                  placeholder="Your Name"
+                  className="input-field"
+                  value={form.name}
+                  onChange={handleChange}
+                />
+              </div>
 
-<div className="col-md-6">
-  <input
-    type="email"
-    name="email"
-    placeholder="Email Address"
-    className="input-field"
-    value={form.email}
-    onChange={handleChange}
-  />
-</div>
+              <div className="col-md-6">
+                <input
+                  type="email"
+                  name="email"
+                  placeholder="Email Address"
+                  className="input-field"
+                  value={form.email}
+                  onChange={handleChange}
+                />
+              </div>
 
-<div className="col-md-6">
-  <input
-    type="text"
-    name="phone"
-    placeholder="Phone Number"
-    className="input-field"
-    value={form.phone}
-    onChange={handleChange}
-  />
-</div>
+              <div className="col-md-6">
+                <input
+                  type="text"
+                  name="phone"
+                  placeholder="Phone Number"
+                  className="input-field"
+                  value={form.phone}
+                  onChange={handleChange}
+                />
+              </div>
 
-<div className="col-md-6">
-  <input
-    type="text"
-    name="subject"
-    placeholder="Subject"
-    className="input-field"
-    value={form.subject}
-    onChange={handleChange}
-  />
-</div>
+              <div className="col-md-6">
+                <input
+                  type="text"
+                  name="subject"
+                  placeholder="Subject"
+                  className="input-field"
+                  value={form.subject}
+                  onChange={handleChange}
+                />
+              </div>
 
-<div className="col-12">
-  <textarea
-    name="message"
-    rows="4"
-    placeholder="Your Message"
-    value={form.message}
-    onChange={handleChange}
-  ></textarea>
-</div>
+              <div className="col-12">
+                <textarea
+                  name="message"
+                  rows="4"
+                  placeholder="Your Message"
+                  value={form.message}
+                  onChange={handleChange}
+                ></textarea>
+              </div>
 
-   <button
-  type="button"
-  className="btn submit-btn w-100"
-  onClick={handleSubmit}
->
-  Send Message
-</button>
+                <button
+                type="button"
+                className="btn submit-btn w-100"
+                onClick={handleSubmit}
+              >
+                Send Message
+              </button>
                 </div>
 
               </div>
@@ -263,7 +291,6 @@ const cityName = formatCity(currentCity);
           ></iframe>
         </div>
       </section>
-
     </div>
   );
 }

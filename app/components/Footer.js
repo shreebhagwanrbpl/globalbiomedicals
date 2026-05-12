@@ -2,10 +2,12 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useEffect, useState } from "react";
 
 export default function Footer() {
 
   const pathname = usePathname();
+  const [contactInfo, setContactInfo] = useState([]);
 
   const pathParts = pathname
     .split("/")
@@ -20,11 +22,11 @@ export default function Footer() {
   ];
 
   // district slug
-  const district =
-    pathParts[0] &&
-    !reservedRoutes.includes(pathParts[0])
-      ? pathParts[0]
-      : "jaipur";
+const district =
+  pathParts[0] &&
+  !reservedRoutes.includes(pathParts[0])
+    ? pathParts[0]
+    : null;
 
   // format city
   const formatCity = (name = "") =>
@@ -38,7 +40,9 @@ export default function Footer() {
 
   const citySlug = district;
 
-  const city = formatCity(citySlug);
+  const city = citySlug
+  ? formatCity(citySlug)
+  : "";
 
   // dynamic links
   const makeLink = (path = "") => {
@@ -49,6 +53,49 @@ export default function Footer() {
 
     return `/${citySlug}${path}`;
   };
+
+
+  const getValue = (key) => {
+
+  return (
+    contactInfo.find((x) => {
+
+      const label =
+        x.label?.toLowerCase();
+
+      return (
+        label?.includes(key) ||
+        (key === "address" &&
+          label?.includes("location"))
+      );
+
+    })?.value || "-"
+  );
+
+};
+
+
+useEffect(() => {
+
+  const fetchContact = async () => {
+
+    try {
+
+      const res = await fetch("/contact.json");
+
+      const data = await res.json();
+
+      setContactInfo(data || []);
+
+    } catch (err) {
+      console.log(err);
+    }
+
+  };
+
+  fetchContact();
+
+}, []);
 
   return (
     <footer className="footer">
@@ -142,13 +189,31 @@ export default function Footer() {
               Contact
             </h6>
 
-            <p className="small mb-1">
-              <i className="bi bi-geo-alt"></i>
+         <p className="small mb-2">
+            <i className="bi bi-geo-alt"></i>
+            {
+              !district
+                ? " F-4, 1st Floor, Plot No. 16, D-Block Tagor Nagar, on Ajmer-Delhi, 200 Feet Bypass Rd, Jaipur, Rajasthan 302021"
+                : ` ${city}, India`
+            }
+          </p>
 
-              {citySlug === "jaipur"
-                ? " Jaipur, Rajasthan"
-                : ` ${city}, India`}
-            </p>
+          {/* MAP */}
+          <iframe
+            src={`https://maps.google.com/maps?q=${
+              !district
+                ? "Raj Biosis Jaipur Rajasthan"
+                : `${city}, India`
+            }&output=embed`}
+            width="100%"
+            height="180"
+            loading="lazy"
+            style={{
+              border: 0,
+              borderRadius: "10px",
+              marginTop: "10px"
+            }}
+          ></iframe>
 
             <p className="small mb-1">
               <i className="bi bi-envelope"></i>
@@ -246,3 +311,4 @@ export default function Footer() {
     </footer>
   );
 }
+

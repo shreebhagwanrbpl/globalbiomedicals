@@ -20,27 +20,35 @@ export default function Navbar() {
   const reservedRoutes = [
     "about",
     "contact",
+     "item",
     "items",
     "products",
     "services",
   ];
 
   // district slug
-  const district =
-    pathParts[0] &&
-    !reservedRoutes.includes(pathParts[0])
-      ? pathParts[0]
-      : "jaipur";
+const district =
+  pathParts[0] &&
+  !reservedRoutes.includes(pathParts[0])
+    ? pathParts[0]
+    : null;
 
   // dynamic links
+  // const makeLink = (path = "") => {
+  //   if (!path) {
+  //     return `/${district}`;
+  //   }
+  //   return `/${district}${path}`;
+  // };
   const makeLink = (path = "") => {
+  if (!district) {
+    return path || "/";
+  }
 
-    if (!path) {
-      return `/${district}`;
-    }
+  return `/${district}${path}`;
+};
 
-    return `/${district}${path}`;
-  };
+
 
   return (
     <nav className="navbar navbar-expand-lg custom-navbar">
@@ -101,14 +109,14 @@ export default function Navbar() {
                 Services
               </Link>
             </li>
-<li>
-  <Link
-    href={makeLink("/items")}
-    className="nav-link"
-  >
-    Products
-  </Link>
-</li>
+              <li>
+                <Link
+                  href={makeLink("/products")}
+                  className="nav-link"
+                >
+                  Products
+                </Link>
+              </li>
 
             <li>
               <Link
@@ -164,7 +172,6 @@ export default function Navbar() {
           border-radius: 8px;
         }
       `}</style>
-
     </nav>
   );
 }

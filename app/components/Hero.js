@@ -7,12 +7,12 @@ import Link from "next/link";
 
 export default function Hero({city}) {
    const [data, setData] = useState({
-  title: "Advanced Diagnostic Solutions.",
+  title: "Advanced Diagnostic Solutions",
   description: "Delivering high-quality medical equipment & consumables for hospitals, labs & healthcare professionals.",
   button1Text: "Explore Services",
   button2Text: "Contact Us",
 });
-const currentCity = city || "jaipur";
+const currentCity = city || "";
 
 // format city
 const formatCity = (name = "") =>

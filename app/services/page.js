@@ -1,15 +1,38 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { usePathname } from "next/navigation";
 import { doc, getDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 
-export default function Services({ city }) {
-  const [services, setServices] = useState([]);
-// current city
-const currentCity = city || "jaipur";
 
-// format city
+export default function Services() {
+  const [services, setServices] = useState([]);
+const pathname = usePathname();
+
+
+const pathParts = pathname
+  .split("/")
+  .filter(Boolean);
+
+const reservedRoutes = [
+  "about",
+  "contact",
+  "item",
+  "items",
+  "products",
+  "services",
+];
+
+const currentCity =
+  typeof window !== "undefined"
+    ? pathParts[0] &&
+      !reservedRoutes.includes(pathParts[0])
+      ? pathParts[0]
+      : ""
+    : "";
+
+
 const formatCity = (name = "") =>
   name
     .split("-")
@@ -60,7 +83,7 @@ const cityName = formatCity(currentCity);
       <section className="services-hero text-center">
         <div className="container">
           <h1 className="fw-bold display-4">
-           Our <span>Services</span> {cityName && `in ${cityName}`}
+           Our <span>Services</span>{cityName ? ` in ${cityName}` : ""}
           </h1>
           <p className="mt-3">
           Comprehensive medical and diagnostic solutions for modern healthcare in {cityName}
