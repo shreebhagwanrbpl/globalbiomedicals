@@ -143,7 +143,7 @@ export default function About() {
 
         /* STATS */
         .stats-section {
-          background: #0f5132;
+         background: linear-gradient(135deg, #155e75, #164e63);
           color: white;
           padding: 60px 0;
         }

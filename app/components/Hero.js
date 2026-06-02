@@ -5,92 +5,116 @@ import { doc, getDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import Link from "next/link";
 
-export default function Hero({city}) {
-   const [data, setData] = useState({
-  // title: "Advanced Diagnostic Solutions",
-  // description: "Delivering high-quality medical equipment & consumables for hospitals, labs & healthcare professionals.",
-  // button1Text: "Explore Services",
-  // button2Text: "Contact Us",
-});
-const currentCity = city || "";
+export default function Hero({ city }) {
+  const [data, setData] = useState({});
+  const [loading, setLoading] = useState(true);
 
-// format city
-const formatCity = (name = "") =>
-  name
-    .split("-")
-    .map(
-      (w) =>
-        w.charAt(0).toUpperCase() + w.slice(1)
-    )
-    .join(" ");
+  const currentCity = city || "";
 
-const citySlug = currentCity;
+  // Format city name
+  const formatCity = (name = "") =>
+    name
+      .split("-")
+      .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+      .join(" ");
 
-const cityName =
-  typeof window === "undefined"
-    ? formatCity(city)
-    : formatCity(currentCity);
+  const citySlug = currentCity;
+
   useEffect(() => {
     const fetchData = async () => {
-      const snap = await getDoc(
-        doc(db, "websites", "globalbiomedicalsin", "pages", "home")
-      );
+      const startTime = Date.now();
 
-      if (snap.exists()) {
-        setData(snap.data());
+      try {
+        const snap = await getDoc(
+          doc(db, "websites", "globalbiomedicalsin", "pages", "home")
+        );
+
+        if (snap.exists()) {
+          setData(snap.data());
+        }
+      } catch (error) {
+        console.error(error);
+      } finally {
+        const elapsed = Date.now() - startTime;
+        const remaining = Math.max(3000 - elapsed, 0);
+
+        setTimeout(() => {
+          setLoading(false);
+        }, remaining);
       }
     };
 
     fetchData();
   }, []);
 
+  // Loader
+  if (loading) {
+    return (
+      <div className="hero-loader">
+        <div className="loader-content">
+          <img
+            src="/globallogo.png" // apna logo path yaha rakho
+            alt="Global Biomedical"
+            className="loader-logo"
+          />
+
+          <div className="loader-spinner"></div>
+
+          <p className="loader-text">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <section className="hero-section text-white">
       <div className="container">
         <div className="row align-items-center">
-
           {/* LEFT */}
           <div className="col-lg-6">
             <span className="badge bg-success mb-3 px-3 py-2">
               Trusted Since 2009
             </span>
 
-   <h1 className="fw-bold display-4">
-  {data?.title}
-  {city ? ` in ${formatCity(city)}` : ""}
-</h1>
+            <h1 className="fw-bold display-4">
+              {data?.title}
+              {city ? ` in ${formatCity(city)}` : ""}
+            </h1>
 
-     <p className="mt-3 text-light">
-  {data?.description}
-  {city ? ` available in ${formatCity(city)}` : ""}
-</p>
+            <p className="mt-3 text-light">
+              {data?.description}
+              {city ? ` available in ${formatCity(city)}` : ""}
+            </p>
 
             <div className="mt-4 d-flex gap-3">
               <Link
-                href={data?.button1Link || `/${citySlug}/services`}
-                className="btn btn-success px-4 py-2"
+                href={city ? `/${city}/products` : "/products"}
               >
-                {data?.button1Text }
+                <button className="btn btn-outline-light px-4 py-2">
+                  {data?.button1Text || "Explore Services"}
+                </button>
               </Link>
 
-              <Link href={data?.button2Link || `/${citySlug}/contact`}>
+              <Link
+                href={city ? `/${city}/contact` : "/contact"}
+              >
                 <button className="btn btn-outline-light px-4 py-2">
-                  {data?.button2Text}
+                  {data?.button2Text || "Contact Us"}
                 </button>
               </Link>
             </div>
           </div>
 
-          {/* RIGHT (STATIC) */}
+          {/* RIGHT */}
           <div className="col-lg-6 text-center position-relative">
             <div className="hero-glow"></div>
+
             <img
               src="https://images.unsplash.com/photo-1579154204601-01588f351e67"
               className="img-fluid rounded-4 shadow-lg"
               alt="medical lab"
             />
           </div>
-
         </div>
       </div>
     </section>

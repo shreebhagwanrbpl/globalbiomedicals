@@ -14,86 +14,86 @@ export default function Products({ city }) {
   const [quoteModal, setQuoteModal] = useState(false);
   const pathname = usePathname();
   const [validCity, setValidCity] = useState("");
-// current city
-const pathParts = pathname
-  .split("/")
-  .filter(Boolean);
+  // current city
+  const pathParts = pathname
+    .split("/")
+    .filter(Boolean);
 
-const reservedRoutes = [
-  "products",
-  "about",
-  "contact",
-  "services"
-];
+  const reservedRoutes = [
+    "products",
+    "about",
+    "contact",
+    "services"
+  ];
 
-const currentCity =
-  pathParts[0] &&
-  !reservedRoutes.includes(pathParts[0])
-    ? pathParts[0]
-    : null;
+  const currentCity =
+    pathParts[0] &&
+      !reservedRoutes.includes(pathParts[0])
+      ? pathParts[0]
+      : null;
 
-const formatCity = (name = "") =>
-  name
-    .split("-")
-    .map(
-      (w) =>
-        w.charAt(0).toUpperCase() + w.slice(1)
-    )
-    .join(" ");
+  const formatCity = (name = "") =>
+    name
+      .split("-")
+      .map(
+        (w) =>
+          w.charAt(0).toUpperCase() + w.slice(1)
+      )
+      .join(" ");
 
-const citySlug = currentCity
-  ?.toLowerCase()
-  ?.replace(/\s+/g, "-");
+  const citySlug = currentCity
+    ?.toLowerCase()
+    ?.replace(/\s+/g, "-");
 
-const cityName = currentCity
-  ? formatCity(currentCity)
-  : "";
-useEffect(() => {
-  const checkCity = async () => {
+  const cityName = currentCity
+    ? formatCity(currentCity)
+    : "";
+  useEffect(() => {
+    const checkCity = async () => {
 
-    if (!currentCity) {
-      setValidCity("");
-      return;
-    }
+      if (!currentCity) {
+        setValidCity("");
+        return;
+      }
 
-    try {
-const snap = await getDoc(
-  doc(
-    db,
-    "websites",
-    "globalbiomedicalorg",
-    "districts",
-    currentCity.toLowerCase()
-  )
-);
+      try {
+        const snap = await getDoc(
+          doc(
+            db,
+            "websites",
+            "globalbiomedicalorg",
+            "districts",
+            currentCity.toLowerCase()
+          )
+        );
 
-if (snap.exists()) {
+        if (snap.exists()) {
 
-  setValidCity(
-    formatCity(currentCity)
-  );
+          setValidCity(
+            formatCity(currentCity)
+          );
 
-} else {
+        } else {
 
-  setValidCity("");
+          setValidCity("");
 
-}
+        }
 
-    } catch (err) {
-      console.error(err);
-      setValidCity("");
-    }
-  };
+      } catch (err) {
+        console.error(err);
+        setValidCity("");
+      }
+    };
 
-  checkCity();
+    checkCity();
 
-}, [currentCity]);
-const [form, setForm] = useState({
-  name: "",
-  email: "",
-  phone: "",
-  message: "" // 🔥 add
-});
+  }, [currentCity]);
+  const [form, setForm] = useState({
+    name: "",
+    email: "",
+    phone: "",
+    message: "" // 🔥 add
+  });
 
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(25);
@@ -130,9 +130,9 @@ const [form, setForm] = useState({
     itemsPerPage === "all"
       ? filtered
       : filtered.slice(
-          (currentPage - 1) * itemsPerPage,
-          currentPage * itemsPerPage
-        );
+        (currentPage - 1) * itemsPerPage,
+        currentPage * itemsPerPage
+      );
 
   useEffect(() => {
     setCurrentPage(1);
@@ -143,248 +143,247 @@ const [form, setForm] = useState({
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
-const handleSubmit = async () => {
-  if (!form.email || !form.phone) {
-    return alert("Please fill all details");
-  }
+  const handleSubmit = async () => {
+    if (!form.email || !form.phone) {
+      return alert("Please fill all details");
+    }
 
-  try {
-    await addDoc(
-      collection(db, "websitesQueries", "globalbiomedicalsin", "productQueries"),
-      {
-        name: form.name,
-        email: form.email,
-        phone: form.phone,
+    try {
+      await addDoc(
+        collection(db, "websitesQueries", "globalbiomedicalsin", "productQueries"),
+        {
+          name: form.name,
+          email: form.email,
+          phone: form.phone,
 
-        // 🔥 AUTO MESSAGE GENERATE
-        message: `Enquiry for product: ${selectedProduct?.title || ""}`,
+          // 🔥 AUTO MESSAGE GENERATE
+          message: `Enquiry for product: ${selectedProduct?.title || ""}`,
 
-        productName: selectedProduct?.title || "",
-        createdAt: serverTimestamp()
-      }
-    );
+          productName: selectedProduct?.title || "",
+          createdAt: serverTimestamp()
+        }
+      );
 
-   toast.success("Quote Request Sent ");
+      toast.success("Quote Request Sent ");
 
-    setForm({
-      name: "",
-      email: "",
-      phone: ""
+      setForm({
+        name: "",
+        email: "",
+        phone: ""
+      });
+
+      setQuoteModal(false);
+
+    } catch (err) {
+      console.error(err);
+      toast.error("Error sending request");
+    }
+  };
+
+  useEffect(() => {
+
+    const slug = window.location.pathname
+      .split("/")
+      .pop();
+
+    if (!slug || slug === "products") return;
+
+    const foundProduct = products.find((p) => {
+
+      const productSlug = p.title
+        ?.toLowerCase()
+        .trim()
+        .replace(/[^a-z0-9\s-]/g, "")
+        .replace(/\s+/g, "-");
+
+      return productSlug === slug;
     });
 
-    setQuoteModal(false);
+    if (foundProduct) {
+      setSelectedProduct(foundProduct);
+    }
 
-  } catch (err) {
-    console.error(err);
-    toast.error("Error sending request");
-  }
-};
-
-useEffect(() => {
-
-  const slug = window.location.pathname
-    .split("/")
-    .pop();
-
-  if (!slug || slug === "products") return;
-
-  const foundProduct = products.find((p) => {
-
-    const productSlug = p.title
-      ?.toLowerCase()
-      .trim()
-      .replace(/[^a-z0-9\s-]/g, "")
-      .replace(/\s+/g, "-");
-
-    return productSlug === slug;
-  });
-
-  if (foundProduct) {
-    setSelectedProduct(foundProduct);
-  }
-
-}, [products]);
+  }, [products]);
 
 
-useEffect(() => {
-  setCurrentPage(1);
-}, [search, itemsPerPage]);
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [search, itemsPerPage]);
 
 
-const generateKeywords = (
-  productName = "",
-  city = ""
-) => {
+  const generateKeywords = (
+    productName = "",
+    city = ""
+  ) => {
 
-  const base = productName.toLowerCase();
+    const base = productName.toLowerCase();
 
-  const prefixes = [
-    "best",
-    "cheap",
-    "affordable",
-    "top",
-    "near me",
-    "online",
-    "trusted",
-    "fast",
-    "certified"
-  ];
+    const prefixes = [
+      "best",
+      "cheap",
+      "affordable",
+      "top",
+      "near me",
+      "online",
+      "trusted",
+      "fast",
+      "certified"
+    ];
 
-  const suffixes = [
-    "lab",
-    "test",
-    "diagnostic",
-    "center",
-    "price",
-    "booking",
-    "home collection",
-    "report",
-    "clinic"
-  ];
+    const suffixes = [
+      "lab",
+      "test",
+      "diagnostic",
+      "center",
+      "price",
+      "booking",
+      "home collection",
+      "report",
+      "clinic"
+    ];
 
-  let keywords = new Set();
+    let keywords = new Set();
 
-  // basic
-  keywords.add(base);
+    // basic
+    keywords.add(base);
 
-  keywords.add(`${base} test`);
-  keywords.add(`${base} lab`);
-  keywords.add(`${base} near me`);
+    keywords.add(`${base} test`);
+    keywords.add(`${base} lab`);
+    keywords.add(`${base} near me`);
 
-  // prefixes
-  prefixes.forEach((p) => {
-    keywords.add(`${p} ${base}`);
-  });
+    // prefixes
+    prefixes.forEach((p) => {
+      keywords.add(`${p} ${base}`);
+    });
 
-  // suffixes
-  suffixes.forEach((s) => {
-    keywords.add(`${base} ${s}`);
-  });
-
-  // combine
-  prefixes.forEach((p) => {
+    // suffixes
     suffixes.forEach((s) => {
-      keywords.add(`${p} ${base} ${s}`);
+      keywords.add(`${base} ${s}`);
     });
-  });
 
-  // dynamic city SEO
-  if (city) {
+    // combine
+    prefixes.forEach((p) => {
+      suffixes.forEach((s) => {
+        keywords.add(`${p} ${base} ${s}`);
+      });
+    });
 
-    keywords.add(`${base} in ${city}`);
+    // dynamic city SEO
+    if (city) {
 
-    keywords.add(
-      `${base} test in ${city}`
-    );
+      keywords.add(`${base} in ${city}`);
 
-    keywords.add(
-      `${base} lab in ${city}`
-    );
-
-    keywords.add(
-      `best ${base} in ${city}`
-    );
-
-    keywords.add(
-      `cheap ${base} in ${city}`
-    );
-
-    keywords.add(
-      `${base} price in ${city}`
-    );
-
-  }
-
-  return Array.from(keywords).slice(0, 35);
-};
-
-useEffect(() => {
-
-  if (selectedProduct?.title) {
-
-    const keywords = generateKeywords(
-      selectedProduct.title,
-      currentCity
-    );
-
-    // 🔥 CONSOLE ME DIKHANE KE LIYE
-    console.log(
-      "SEO KEYWORDS 👉",
-      `(${keywords.length})`,
-      keywords
-    );
-
-    // TITLE
-    document.title = currentCity
-      ? `${selectedProduct.title} in ${validCity}`
-      : selectedProduct.title;
-
-    // KEYWORDS META
-    let metaKeywords = document.querySelector(
-      'meta[name="keywords"]'
-    );
-
-    if (!metaKeywords) {
-
-      metaKeywords =
-        document.createElement("meta");
-
-      metaKeywords.name = "keywords";
-
-      document.head.appendChild(
-        metaKeywords
+      keywords.add(
+        `${base} test in ${city}`
       );
+
+      keywords.add(
+        `${base} lab in ${city}`
+      );
+
+      keywords.add(
+        `best ${base} in ${city}`
+      );
+
+      keywords.add(
+        `cheap ${base} in ${city}`
+      );
+
+      keywords.add(
+        `${base} price in ${city}`
+      );
+
     }
 
-    metaKeywords.content =
-      keywords.join(", ");
+    return Array.from(keywords).slice(0, 35);
+  };
 
-    // DESCRIPTION
-    let metaDescription =
-      document.querySelector(
-        'meta[name="description"]'
-      );
+  useEffect(() => {
 
-    if (!metaDescription) {
+    if (selectedProduct?.title) {
 
-      metaDescription =
-        document.createElement("meta");
-
-      metaDescription.name =
-        "description";
-
-      document.head.appendChild(
-        metaDescription
-      );
-    }
-
-    metaDescription.content =
-      selectedProduct.desc ||
-      `${selectedProduct.title} available ${
+      const keywords = generateKeywords(
+        selectedProduct.title,
         currentCity
+      );
+
+      // 🔥 CONSOLE ME DIKHANE KE LIYE
+      console.log(
+        "SEO KEYWORDS 👉",
+        `(${keywords.length})`,
+        keywords
+      );
+
+      // TITLE
+      document.title = currentCity
+        ? `${selectedProduct.title} in ${validCity}`
+        : selectedProduct.title;
+
+      // KEYWORDS META
+      let metaKeywords = document.querySelector(
+        'meta[name="keywords"]'
+      );
+
+      if (!metaKeywords) {
+
+        metaKeywords =
+          document.createElement("meta");
+
+        metaKeywords.name = "keywords";
+
+        document.head.appendChild(
+          metaKeywords
+        );
+      }
+
+      metaKeywords.content =
+        keywords.join(", ");
+
+      // DESCRIPTION
+      let metaDescription =
+        document.querySelector(
+          'meta[name="description"]'
+        );
+
+      if (!metaDescription) {
+
+        metaDescription =
+          document.createElement("meta");
+
+        metaDescription.name =
+          "description";
+
+        document.head.appendChild(
+          metaDescription
+        );
+      }
+
+      metaDescription.content =
+        selectedProduct.desc ||
+        `${selectedProduct.title} available ${currentCity
           ? `in ${validCity}`
           : "in India"
-      }`;
+        }`;
 
-  }
+    }
 
-}, [selectedProduct, currentCity]);
+  }, [selectedProduct, currentCity]);
 
 
 
   return (
     <div className="products-page">
       <Toaster
-  position="top-right"
-  containerStyle={{
-    zIndex: 9999999, 
-  }}
-/>
+        position="top-right"
+        containerStyle={{
+          zIndex: 9999999,
+        }}
+      />
       {/* HEADER */}
       <div className="container-fluid px-5 py-5 text-center">
-       <h1 className="fw-bold display-4">
-  Our Products {validCity && `in ${validCity}`}
-</h1>
+        <h1 className="fw-bold display-4">
+          Our Products {validCity && `in ${validCity}`}
+        </h1>
 
         <input
           type="text"
@@ -416,38 +415,38 @@ useEffect(() => {
 
                   <div className="p-3">
                     <h5>{item.title}</h5>
-                  <div className="product-info small text-muted">
-                    <div><b>Brand:</b> {item.brand || "-"}</div>
-                    <div><b>Size:</b> {item.size || "-"}</div>
-                    <div><b>Usage:</b> {item.usage || "-"}</div>
-                  </div>
+                    <div className="product-info small text-muted">
+                      <div><b>Brand:</b> {item.brand || "-"}</div>
+                      <div><b>Size:</b> {item.size || "-"}</div>
+                      <div><b>Usage:</b> {item.usage || "-"}</div>
+                    </div>
 
-             <button
-              className="btn btn-success w-100"
-        onClick={() => {
+                    <button
+                      className="btn btn-success w-100"
+                      onClick={() => {
 
-        setSelectedProduct(item);
+                        setSelectedProduct(item);
 
-        const productSlug = item.title
-            ?.toLowerCase()
-            .trim()
-            .replace(/[^a-z0-9\s-]/g, "")
-            .replace(/\s+/g, "-");
+                        const productSlug = item.title
+                          ?.toLowerCase()
+                          .trim()
+                          .replace(/[^a-z0-9\s-]/g, "")
+                          .replace(/\s+/g, "-");
 
-        const districtSlug = currentCity
-            ?.toLowerCase()
-            .replace(/\s+/g, "-");
+                        const districtSlug = currentCity
+                          ?.toLowerCase()
+                          .replace(/\s+/g, "-");
 
-        const url = districtSlug
-            ? `/${districtSlug}/products`
-            : `/products`;
+                        const url = districtSlug
+                          ? `/${districtSlug}/products`
+                          : `/products`;
 
-        window.history.pushState({}, "", url);
+                        window.history.pushState({}, "", url);
 
-        }}
-            >
-              View Details
-            </button>
+                      }}
+                    >
+                      View Details
+                    </button>
                   </div>
 
                 </div>
@@ -516,21 +515,21 @@ useEffect(() => {
 
             <span
               className="close"
-           onClick={() => {
+              onClick={() => {
 
-            setSelectedProduct(null);
+                setSelectedProduct(null);
 
-            const districtSlug = currentCity
-                ?.toLowerCase()
-                .replace(/\s+/g, "-");
+                const districtSlug = currentCity
+                  ?.toLowerCase()
+                  .replace(/\s+/g, "-");
 
-            const url = districtSlug
-                ? `/${districtSlug}/products`
-                : `/products`;
+                const url = districtSlug
+                  ? `/${districtSlug}/products`
+                  : `/products`;
 
-            window.history.pushState({}, "", url);
+                window.history.pushState({}, "", url);
 
-            }}
+              }}
             >
               ×
             </span>
@@ -544,63 +543,63 @@ useEffect(() => {
                 />
               </div>
 
-<div className="col-md-6">
+              <div className="col-md-6">
 
-  <h3 className="fw-bold">{selectedProduct.title}</h3>
-  <p className="text-muted">{selectedProduct.desc}</p>
+                <h3 className="fw-bold">{selectedProduct.title}</h3>
+                {/* <p className="text-muted">{selectedProduct.desc}</p> */}
 
-  {/* 🔥 ALL DETAILS MERGED */}
-  <div className="spec-box mt-3">
+                {/* 🔥 ALL DETAILS MERGED */}
+                <div className="spec-box mt-3">
 
-    <h6>Product Details</h6>
+                  <h6>Product Details</h6>
 
-    <div className="spec-grid">
+                  <div className="spec-grid">
 
-      {Object.entries(selectedProduct).map(([k, v]) => {
-        if (
-          ["title","desc","image","id","isPublished","createdAt"].includes(k)
-        ) return null;
+                    {Object.entries(selectedProduct).map(([k, v]) => {
+                      if (
+                        ["title", "desc", "image", "id", "isPublished", "createdAt"].includes(k)
+                      ) return null;
 
-        return (
-          <div key={k} className="spec-item">
-            <span className="spec-key">
-              {k.replace(/_/g, " ")}
-            </span>
-            <span className="spec-value">
-              {v || "-"}
-            </span>
-          </div>
-        );
-      })}
+                      return (
+                        <div key={k} className="spec-item">
+                          <span className="spec-key">
+                            {k.replace(/_/g, " ")}
+                          </span>
+                          <span className="spec-value">
+                            {v || "-"}
+                          </span>
+                        </div>
+                      );
+                    })}
 
-    </div>
-  </div>
+                  </div>
+                </div>
 
-  {/* 🔥 BUTTONS */}
-  <div className="mt-4 d-flex gap-2">
+                {/* 🔥 BUTTONS */}
+                <div className="mt-4 d-flex gap-2">
 
-    <button
-      className="btn btn-success w-100"
-      onClick={() => setQuoteModal(true)}
-    >
-      Get Quote
-    </button>
+                  <button
+                    className="btn btn-success w-100"
+                    onClick={() => setQuoteModal(true)}
+                  >
+                    Get Quote
+                  </button>
 
-<Link
-  href={
-    citySlug
-      ? `/${citySlug}/contact`
-      : `/contact`
-  }
->
-  <button className="btn btn-outline-dark w-100">
-    Enquiry
-  </button>
-</Link>
+                  <Link
+                    href={
+                      citySlug
+                        ? `/${citySlug}/contact`
+                        : `/contact`
+                    }
+                  >
+                    <button className="btn btn-outline-dark w-100">
+                      Enquiry
+                    </button>
+                  </Link>
 
-  </div>
+                </div>
 
-</div>
+              </div>
 
             </div>
 

@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import { doc, getDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
-
+import Link from "next/link";
 export default function Services() {
   const [services, setServices] = useState([]);
   const [validCity, setValidCity] = useState("");
@@ -48,27 +48,27 @@ export default function Services() {
       }
 
       try {
-const snap = await getDoc(
-  doc(
-    db,
-    "websites",
-    "globalbiomedicalorg",
-    "districts",
-    currentCity.toLowerCase()
-  )
-);
+        const snap = await getDoc(
+          doc(
+            db,
+            "websites",
+            "globalbiomedicalorg",
+            "districts",
+            currentCity.toLowerCase()
+          )
+        );
 
-if (snap.exists()) {
+        if (snap.exists()) {
 
-  setValidCity(
-    formatCity(currentCity)
-  );
+          setValidCity(
+            formatCity(currentCity)
+          );
 
-} else {
+        } else {
 
-  setValidCity("");
+          setValidCity("");
 
-}
+        }
       } catch (err) {
         console.error(err);
         setValidCity("");
@@ -152,6 +152,7 @@ if (snap.exists()) {
       </section>
 
       {/* CTA */}
+      {/* CTA */}
       <section className="cta text-center">
         <div className="container">
           <h2>Need Medical Solutions?</h2>
@@ -161,9 +162,16 @@ if (snap.exists()) {
             {validCity ? ` in ${validCity}` : ""}
           </p>
 
-          <button className="btn btn-light px-4 mt-2">
+          <Link
+            href={
+              validCity
+                ? `/${validCity.toLowerCase()}/contact`
+                : "/contact"
+            }
+            className="btn btn-light px-4 mt-2"
+          >
             Get in Touch
-          </button>
+          </Link>
         </div>
       </section>
 
@@ -214,7 +222,7 @@ if (snap.exists()) {
 
         /* CTA */
         .cta {
-          background: #0f5132;
+          background: linear-gradient(135deg, #155e75, #164e63);
           color: white;
           padding: 70px 0;
         }

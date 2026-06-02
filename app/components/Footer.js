@@ -7,15 +7,15 @@ import { db } from "@/lib/firebase";
 import { doc, getDoc } from "firebase/firestore";
 export default function Footer() {
 
- 
+
   const [contactInfo, setContactInfo] = useState([]);
-const [stateName, setStateName] = useState("");
-const [validCity, setValidCity] = useState(false);
-   const pathname = usePathname();
+  const [stateName, setStateName] = useState("");
+  const [validCity, setValidCity] = useState(false);
+  const pathname = usePathname();
   const pathParts = pathname
     .split("/")
     .filter(Boolean);
-const firstPart = pathParts[0];
+  const firstPart = pathParts[0];
   const reservedRoutes = [
     "about",
     "contact",
@@ -25,11 +25,11 @@ const firstPart = pathParts[0];
   ];
 
   // district slug
-const district =
-  pathParts[0] &&
-  !reservedRoutes.includes(pathParts[0])
-    ? pathParts[0]
-    : null;
+  const district =
+    pathParts[0] &&
+      !reservedRoutes.includes(pathParts[0])
+      ? pathParts[0]
+      : null;
 
   // format city
   const formatCity = (name = "") =>
@@ -44,11 +44,11 @@ const district =
 
   const citySlug =
     firstPart &&
-    !reservedRoutes.includes(firstPart)
+      !reservedRoutes.includes(firstPart)
       ? firstPart
       : "jaipur";
 
-const city = formatCity(citySlug);
+  const city = formatCity(citySlug);
 
   // dynamic links
   const makeLink = (path = "") => {
@@ -63,100 +63,102 @@ const city = formatCity(citySlug);
 
   const getValue = (key) => {
 
-  return (
-    contactInfo.find((x) => {
+    return (
+      contactInfo.find((x) => {
 
-      const label =
-        x.label?.toLowerCase();
+        const label =
+          x.label?.toLowerCase();
 
-      return (
-        label?.includes(key) ||
-        (key === "address" &&
-          label?.includes("location"))
-      );
+        return (
+          label?.includes(key) ||
+          (key === "address" &&
+            label?.includes("location"))
+        );
 
-    })?.value || "-"
-  );
-
-};
-
-
-useEffect(() => {
-
-  const fetchContact = async () => {
-
-    try {
-
-      const res = await fetch("/contact.json");
-
-      const data = await res.json();
-
-      setContactInfo(data || []);
-
-    } catch (err) {
-      console.log(err);
-    }
+      })?.value || "-"
+    );
 
   };
 
-  fetchContact();
 
-}, []);
-useEffect(() => {
+  useEffect(() => {
 
-  const loadDistrict = async () => {
+    const fetchContact = async () => {
 
-    if (!district) {
-      setValidCity(false);
-      return;
-    }
+      try {
 
-    try {
+        const res = await fetch("/contact.json");
 
-      const snap = await getDoc(
-        doc(
-          db,
-          "websites",
-          "globalbiomedicalorg",
-          "districts",
-          citySlug
-        )
-      );
+        const data = await res.json();
 
-      if (snap.exists()) {
+        setContactInfo(data || []);
 
-        setValidCity(true);
+      } catch (err) {
+        console.log(err);
+      }
 
-        setStateName(
-          snap.data()?.state || ""
+    };
+
+    fetchContact();
+
+  }, []);
+  useEffect(() => {
+
+    const loadDistrict = async () => {
+
+      if (!district) {
+        setValidCity(false);
+        return;
+      }
+
+      try {
+
+        const snap = await getDoc(
+          doc(
+            db,
+            "websites",
+            "globalbiomedicalorg",
+            "districts",
+            citySlug
+          )
         );
 
-      } else {
+        if (snap.exists()) {
+
+          setValidCity(true);
+
+          setStateName(
+            snap.data()?.state || ""
+          );
+
+        } else {
+
+          setValidCity(false);
+          setStateName("");
+
+        }
+
+      } catch (err) {
+
+        console.log(err);
 
         setValidCity(false);
-        setStateName("");
 
       }
 
-    } catch (err) {
+    };
 
-      console.log(err);
+    loadDistrict();
 
-      setValidCity(false);
-
-    }
-
-  };
-
-  loadDistrict();
-
-}, [citySlug, district]);
+  }, [citySlug, district]);
   return (
     <footer className="footer">
 
-      <div className="container-fluid px-5 py-5">
+      {/* <div className="container-fluid px-5 py-5"> */}
+      <div className="container py-5">
 
-        <div className="row gy-4">
+        {/* <div className="row gy-4"> */}
+        <div className="row gy-5 justify-content-between">
 
           {/* COMPANY INFO */}
           <div className="col-lg-4">
@@ -174,60 +176,17 @@ useEffect(() => {
 
           {/* QUICK LINKS */}
           <div className="col-lg-2">
-
             <h6 className="footer-title">
               Quick Links
             </h6>
 
             <ul className="footer-links">
-
-<li>
-  <Link
-    href={makeLink("")}
-    className="footer-link"
-  >
-    Home
-  </Link>
-</li>
-
-<li>
-  <Link
-    href={makeLink("/items")}
-    className="footer-link"
-  >
-    Products
-  </Link>
-</li>
-
-<li>
-  <Link
-    href={makeLink("/services")}
-    className="footer-link"
-  >
-    Services
-  </Link>
-</li>
-
-<li>
-  <Link
-    href={makeLink("/about")}
-    className="footer-link"
-  >
-    About
-  </Link>
-</li>
-
-<li>
-  <Link
-    href={makeLink("/contact")}
-    className="footer-link"
-  >
-    Contact
-  </Link>
-</li>
-
+              <li><Link href={makeLink("")} className="footer-link">Home</Link></li>
+              <li><Link href={makeLink("/items")} className="footer-link">Products</Link></li>
+              <li><Link href={makeLink("/services")} className="footer-link">Services</Link></li>
+              <li><Link href={makeLink("/about")} className="footer-link">About</Link></li>
+              <li><Link href={makeLink("/contact")} className="footer-link">Contact</Link></li>
             </ul>
-
           </div>
 
           {/* SERVICES */}
@@ -258,44 +217,43 @@ useEffect(() => {
               Contact
             </h6>
 
-         <p className="small mb-2">
-            <i className="bi bi-geo-alt"></i>
-            
-        {validCity
-  ? stateName
-    ? `${city}, ${stateName}, India`
-    : `${city}, India`
-  : "Amrapali , Vaishali Nagar , Jaipur, India, 302021"}
-          </p>
+            <p className="small mb-2">
+              <i className="bi bi-geo-alt">  </i>
 
-          {/* MAP */}
-          <iframe
-            src={`https://maps.google.com/maps?q=${
-       !validCity
-  ? "Amrapali , Vaishali Nagar , Jaipur, India, 302021"
-  : stateName
-    ? `${city}, ${stateName}, India`
-    : `${city}, India`
-            }&output=embed`}
-            width="100%"
-            height="180"
-            loading="lazy"
-            style={{
-              border: 0,
-              borderRadius: "10px",
-              marginTop: "10px"
-            }}
-          ></iframe>
-
+              {validCity
+                ? stateName
+                  ? `${city}, ${stateName}, India`
+                  : `${city}, India`
+                : "Amrapali , Vaishali Nagar , Jaipur, India, 302021"}
+            </p>
             <p className="small mb-1">
-              <i className="bi bi-envelope"></i>
+              <i className="bi bi-envelope">  </i>
               info@rajbiosis.com
             </p>
 
             <p className="small">
-              <i className="bi bi-telephone"></i>
+              <i className="bi bi-telephone">  </i>
               +91 XXXXX XXXXX
             </p>
+            {/* MAP */}
+            <iframe
+              src={`https://maps.google.com/maps?q=${!validCity
+                ? "Amrapali , Vaishali Nagar , Jaipur, India, 302021"
+                : stateName
+                  ? `${city}, ${stateName}, India`
+                  : `${city}, India`
+                }&output=embed`}
+              width="100%"
+              height="180"
+              loading="lazy"
+              style={{
+                border: 0,
+                borderRadius: "10px",
+                marginTop: "10px"
+              }}
+            ></iframe>
+
+
 
           </div>
 
@@ -316,25 +274,38 @@ useEffect(() => {
       </div>
 
       <style jsx>{`
-.footer {
-  background: #111;
+.footer :global(.footer-link) {
+  color: #fff !important;
+  text-decoration: none !important;
+  font-size: 15px;
+  font-weight: 500;
+  display: inline-block;
+  transition: all 0.3s ease;
+}
+
+.footer :global(.footer-link:hover) {
+  color: #198754 !important;
+  transform: translateX(4px);
+}
+
+.footer :global(a) {
+  color: #fff !important;
+  text-decoration: none !important;
+}
+
+.footer :global(a:hover) {
+  color: #198754 !important;
+}
+  .footer {
   color: #fff;
 }
 
-.footer-title {
-  font-weight: 600;
-  margin-bottom: 12px;
-  position: relative;
-  color: #fff;
-}
-
-.footer-title::after {
-  content: "";
-  width: 40px;
-  height: 2px;
-  background: #198754;
-  display: block;
-  margin-top: 6px;
+.footer p,
+.footer li,
+.footer h6,
+.footer h4,
+.footer i {
+  color: #fff !important;
 }
 
 .footer-links {
@@ -344,39 +315,55 @@ useEffect(() => {
 }
 
 .footer-links li {
-  margin-bottom: 12px;
+  margin-bottom: 10px;
 }
-
-.footer-links a {
-  color: #fff !important;
-  text-decoration: none !important;
-  font-size: 15px;
-  font-weight: 500;
-  transition: 0.3s ease;
-  display: inline-block;
-}
-
-.footer-links a:hover {
-  color: #198754 !important;
-}
-
-
 
 .footer-bottom {
-  border-top: 1px solid #333;
+  border-top: 1px solid rgba(255,255,255,0.15);
 }
 
-.footer p,
-.footer small,
-.footer li {
-  color: #fff;
+.footer iframe {
+  width: 100%;
+  border-radius: 12px;
 }
 
-.footer i {
-  color: #198754;
+@media (max-width: 991px) {
+  .footer {
+    text-align: center;
+  }
+
+  .footer .col-lg-4,
+  .footer .col-lg-3,
+  .footer .col-lg-2 {
+    margin-bottom: 30px;
+  }
+
+  .footer iframe {
+    max-width: 450px;
+    margin: 15px auto;
+    display: block;
+  }
 }
 
-      `}</style>
+@media (max-width: 768px) {
+  .footer .container-fluid {
+    padding-left: 20px !important;
+    padding-right: 20px !important;
+  }
+
+  .footer h4 {
+    font-size: 28px;
+  }
+
+  .footer h6 {
+    margin-bottom: 15px;
+  }
+
+  .footer iframe {
+    height: 220px;
+  }
+}
+`}</style>
 
     </footer>
   );

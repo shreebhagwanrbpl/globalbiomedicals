@@ -20,18 +20,18 @@ export default function Navbar() {
   const reservedRoutes = [
     "about",
     "contact",
-     "item",
+    "item",
     "items",
     "products",
     "services",
   ];
 
   // district slug
-const district =
-  pathParts[0] &&
-  !reservedRoutes.includes(pathParts[0])
-    ? pathParts[0]
-    : null;
+  const district =
+    pathParts[0] &&
+      !reservedRoutes.includes(pathParts[0])
+      ? pathParts[0]
+      : null;
 
   // dynamic links
   // const makeLink = (path = "") => {
@@ -41,12 +41,12 @@ const district =
   //   return `/${district}${path}`;
   // };
   const makeLink = (path = "") => {
-  if (!district) {
-    return path || "/";
-  }
+    if (!district) {
+      return path || "/";
+    }
 
-  return `/${district}${path}`;
-};
+    return `/${district}${path}`;
+  };
 
 
 
@@ -84,9 +84,8 @@ const district =
 
         {/* MENU */}
         <div
-          className={`collapse navbar-collapse ${
-            menuOpen ? "show" : ""
-          }`}
+          className={`collapse navbar-collapse ${menuOpen ? "show" : ""
+            }`}
           id="nav"
         >
 
@@ -109,14 +108,14 @@ const district =
                 Services
               </Link>
             </li>
-              <li>
-                <Link
-                  href={makeLink("/products")}
-                  className="nav-link"
-                >
-                  Products
-                </Link>
-              </li>
+            <li>
+              <Link
+                href={makeLink("/products")}
+                className="nav-link"
+              >
+                Products
+              </Link>
+            </li>
 
             <li>
               <Link
