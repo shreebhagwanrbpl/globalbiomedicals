@@ -1,21 +1,41 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { doc, getDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import "@/app/components/product.css";
 import { usePathname, useRouter } from "next/navigation";
 import { Toaster } from "react-hot-toast";
+import {
+  FiChevronDown,
+  FiChevronRight,
+} from "react-icons/fi";
 
 export default function Products({ city }) {
-  const [search, setSearch] = useState("");
-  const [products, setProducts] = useState([]);
-  const [validCity, setValidCity] = useState("");
-  const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage, setItemsPerPage] = useState(25);
+
+  const router = useRouter();
 
   const pathname = usePathname();
-  const router = useRouter();
+
+  const [search, setSearch] = useState("");
+
+  const [products, setProducts] = useState([]);
+
+  const [validCity, setValidCity] = useState("");
+
+  const [currentPage, setCurrentPage] = useState(1);
+
+  const [itemsPerPage, setItemsPerPage] = useState(25);
+
+  const [openedCategory, setOpenedCategory] = useState("");
+
+  const [activeCategory, setActiveCategory] = useState("");
+
+
+
+  /* -----------------------------
+      CITY
+  ------------------------------ */
 
   const pathParts = pathname
     .split("/")
@@ -30,7 +50,7 @@ export default function Products({ city }) {
 
   const currentCity =
     pathParts[0] &&
-      !reservedRoutes.includes(pathParts[0])
+    !reservedRoutes.includes(pathParts[0])
       ? pathParts[0]
       : null;
 
@@ -48,402 +68,1202 @@ export default function Products({ city }) {
     ?.toLowerCase()
     ?.replace(/\s+/g, "-");
 
+
+
+  /* -----------------------------
+      VALID CITY
+  ------------------------------ */
+
   useEffect(() => {
+
     const checkCity = async () => {
+
       if (!currentCity) {
+
         setValidCity("");
+
         return;
+
       }
 
       try {
+
         const snap = await getDoc(
+
           doc(
+
             db,
+
             "websites",
+
             "globalbiomedicalorg",
+
             "districts",
+
             currentCity.toLowerCase()
+
           )
+
         );
 
         if (snap.exists()) {
+
           setValidCity(
+
             formatCity(currentCity)
+
           );
-        } else {
-          setValidCity("");
+
         }
+
       } catch (err) {
-        console.error(err);
-        setValidCity("");
+
+        console.log(err);
+
       }
+
     };
 
     checkCity();
+
   }, [currentCity]);
 
+
+
+  /* -----------------------------
+      CATEGORY
+  ------------------------------ */
+
+  const getCategory = (item) => {
+
+    const title =
+      (item.title || "").toLowerCase();
+
+    if (
+      title.includes("rapid")
+    )
+      return "Rapid Test Kits";
+
+    if (
+      title.includes("elisa")
+    )
+      return "ELISA Kits";
+
+    if (
+      title.includes("hematology")
+    )
+      return "Hematology";
+
+    if (
+      title.includes("electrolyte")
+    )
+      return "Electrolyte Reagents";
+
+    if (
+      title.includes("biochemistry")
+    )
+      return "Biochemistry";
+
+    if (
+      title.includes("immuno")
+    )
+      return "Immunoassay Analyzer";
+
+    return "Other Products";
+
+  };
+
+
+
+  /* -----------------------------
+      FETCH PRODUCTS
+  ------------------------------ */
+
   useEffect(() => {
-    const fetchData = async () => {
+
+    const fetchProducts = async () => {
+
       const snap = await getDoc(
+
         doc(
+
           db,
+
           "websites",
+
           "globalbiomedicalsin",
+
           "pages",
+
           "products"
+
         )
+
       );
 
-      if (snap.exists()) {
-        const data =
-          snap.data().products || [];
+      if (!snap.exists()) return;
 
-        const visible =
-          data.filter(
+      const raw =
+        snap.data().products || [];
+
+      const slugify = (text = "") =>
+
+        text
+
+          .toLowerCase()
+
+          .trim()
+
+          .replace(/[^a-z0-9\s-]/g, "")
+
+          .replace(/\s+/g, "-");
+
+
+
+      const formatted =
+
+        raw
+
+          .filter(
+
             (p) =>
-              p.isPublished !== false
-          );
 
-        setProducts(visible);
-      }
+              p.isPublished !== false
+
+          )
+
+          .map((item, index) => ({
+
+            ...item,
+
+            // slug:
+
+            //   item.slug ||
+
+            //   `${slugify(item.title)}-${index}`,
+
+            slug:
+            item.slug ||
+            slugify(item.title),
+            uid:index,
+
+            category:
+
+              item.category ||
+
+              getCategory(item),
+
+          }));
+
+      setProducts(formatted);
+
     };
 
-    fetchData();
+    fetchProducts();
+
   }, []);
 
-  const filtered = products.filter(
-    (p) =>
-      p.title
-        ?.toLowerCase()
-        .includes(
-          search.toLowerCase()
-        )
-  );
+
+
+
+  /* -----------------------------
+      SEARCH
+  ------------------------------ */
+
+  const filteredProducts =
+    useMemo(() => {
+
+      return products.filter((item) =>
+
+        item.title
+
+          ?.toLowerCase()
+
+          .includes(
+
+            search.toLowerCase()
+
+          )
+
+      );
+
+    }, [
+
+      products,
+
+      search
+
+    ]);
+
+
+
+  /* -----------------------------
+      GROUP
+  ------------------------------ */
+
+  const groupedProducts =
+    useMemo(() => {
+
+      const obj = {};
+
+      filteredProducts.forEach((item) => {
+
+        if (!obj[item.category]) {
+
+          obj[item.category] = [];
+
+        }
+
+        obj[item.category].push(item);
+
+      });
+
+      return obj;
+
+    }, [
+
+      filteredProducts
+
+    ]);
+
+
+
+  const categories =
+    Object.keys(groupedProducts);
+
+
+
+  // useEffect(() => {
+
+  //   if (
+
+  //     categories.length &&
+
+  //     !openedCategory
+
+  //   ) {
+
+  //     setOpenedCategory(
+
+  //       categories[0]
+
+  //     );
+
+  //     setActiveCategory(
+
+  //       categories[0]
+
+  //     );
+
+  //   }
+
+  // }, [categories]);
+
+  
+
+
+
+const toggleCategory = (category) => {
+
+  if (openedCategory === category) {
+
+    setOpenedCategory("");
+
+    setActiveCategory("");
+
+    return;
+
+  }
+
+  setOpenedCategory(category);
+
+  setActiveCategory(category);
+
+};
+
+
+
+  const scrollToCategory = (
+
+    category
+
+  ) => {
+
+    setOpenedCategory(category);
+
+    setActiveCategory(category);
+
+    const section =
+
+      document.getElementById(
+
+        category
+
+          .replace(/\s+/g, "-")
+
+          .toLowerCase()
+
+      );
+
+    if (section) {
+
+      section.scrollIntoView({
+
+        behavior: "smooth",
+
+        block: "start",
+
+      });
+
+    }
+
+  };
+
+    /* -----------------------------
+      PAGINATION
+  ------------------------------ */
 
   const totalPages =
     itemsPerPage === "all"
       ? 1
       : Math.ceil(
-        filtered.length /
-        itemsPerPage
-      );
+          filteredProducts.length /
+            itemsPerPage
+        );
 
   const paginatedProducts =
     itemsPerPage === "all"
-      ? filtered
-      : filtered.slice(
-        (currentPage - 1) *
-        itemsPerPage,
-        currentPage *
-        itemsPerPage
-      );
+      ? filteredProducts
+      : filteredProducts.slice(
+          (currentPage - 1) *
+            itemsPerPage,
+          currentPage *
+            itemsPerPage
+        );
 
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [search, itemsPerPage]);
+  const paginatedGroupedProducts =
+    useMemo(() => {
 
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [search, itemsPerPage]);
+      const obj = {};
 
+      paginatedProducts.forEach((item) => {
 
-  const generateKeywords = (
-    productName = "",
-    city = ""
-  ) => {
+        if (!obj[item.category]) {
 
-    const base = productName.toLowerCase();
+          obj[item.category] = [];
 
-    const prefixes = [
-      "best",
-      "cheap",
-      "affordable",
-      "top",
-      "near me",
-      "online",
-      "trusted",
-      "fast",
-      "certified"
-    ];
+        }
 
-    const suffixes = [
-      "lab",
-      "test",
-      "diagnostic",
-      "center",
-      "price",
-      "booking",
-      "home collection",
-      "report",
-      "clinic"
-    ];
+        obj[item.category].push(item);
 
-    let keywords = new Set();
-
-    // basic
-    keywords.add(base);
-
-    keywords.add(`${base} test`);
-    keywords.add(`${base} lab`);
-    keywords.add(`${base} near me`);
-
-    // prefixes
-    prefixes.forEach((p) => {
-      keywords.add(`${p} ${base}`);
-    });
-
-    // suffixes
-    suffixes.forEach((s) => {
-      keywords.add(`${base} ${s}`);
-    });
-
-    // combine
-    prefixes.forEach((p) => {
-      suffixes.forEach((s) => {
-        keywords.add(`${p} ${base} ${s}`);
       });
-    });
 
-    // dynamic city SEO
-    if (city) {
+      return obj;
 
-      keywords.add(`${base} in ${city}`);
+    }, [paginatedProducts]);
 
-      keywords.add(
-        `${base} test in ${city}`
+
+
+  useEffect(() => {
+
+    setCurrentPage(1);
+
+  }, [
+
+    search,
+
+    itemsPerPage
+
+  ]);
+
+
+
+  /* -----------------------------
+      SCROLL SPY
+  ------------------------------ */
+
+  useEffect(() => {
+
+    const handleScroll = () => {
+
+      let current = "";
+
+      categories.forEach((category) => {
+
+        const section =
+          document.getElementById(
+
+            category
+              .replace(/\s+/g, "-")
+              .toLowerCase()
+
+          );
+
+        if (!section) return;
+
+        const top =
+          section.getBoundingClientRect().top;
+
+        if (top <= 180) {
+
+          current = category;
+
+        }
+
+      });
+
+      if (
+
+        current &&
+
+        current !== activeCategory
+
+      ) {
+
+        setActiveCategory(current);
+
+      }
+
+    };
+
+    window.addEventListener(
+
+      "scroll",
+
+      handleScroll
+
+    );
+
+    return () =>
+
+      window.removeEventListener(
+
+        "scroll",
+
+        handleScroll
+
       );
 
-      keywords.add(
-        `${base} lab in ${city}`
-      );
+  }, [
 
-      keywords.add(
-        `best ${base} in ${city}`
-      );
+    categories,
 
-      keywords.add(
-        `cheap ${base} in ${city}`
-      );
+    activeCategory
 
-      keywords.add(
-        `${base} price in ${city}`
-      );
+  ]);
 
-    }
 
-    return Array.from(keywords).slice(0, 35);
+
+  /* -----------------------------
+      VIEW DETAILS
+  ------------------------------ */
+
+  const viewDetails = (item) => {
+
+    router.push(
+
+      citySlug
+
+        ? `/${citySlug}/products/${item.slug}`
+
+        : `/products/${item.slug}`
+
+    );
+
   };
 
+
+
+  /* -----------------------------
+      RESET
+  ------------------------------ */
+
+  const resetSearch = () => {
+
+    setSearch("");
+
+    setCurrentPage(1);
+
+  };
+
+const scrollToProduct = (slug, category) => {
+
+  setOpenedCategory(category);
+  setActiveCategory(category);
+
+  const el = document.getElementById(slug);
+
+  if (el) {
+
+    el.scrollIntoView({
+      behavior: "smooth",
+      block: "start",
+    });
+
+  }
+
+};
+
   return (
-    <div className="products-page">
+
+    <>
+
       <Toaster
         position="top-right"
-        containerStyle={{
-          zIndex: 9999999,
-        }}
       />
 
-      {/* HEADER */}
-      <div className="container-fluid px-5 py-5 text-center">
-        <h1 className="fw-bold display-4">
-          Our Products{" "}
-          {validCity &&
-            `in ${validCity}`}
-        </h1>
+      <section className="product-banner">
 
-        <input
-          type="text"
-          placeholder="Search product..."
-          value={search}
-          onChange={(e) =>
-            setSearch(e.target.value)
-          }
-          className="form-control mt-3"
-          style={{
-            maxWidth: 300,
-            margin: "auto",
-          }}
-        />
-      </div>
+        <div className="container">
 
-      {/* GRID */}
-      <div className="container-fluid px-5 pb-5">
-        <div className="product-grid">
-          {paginatedProducts.length ===
-            0 ? (
-            <div className="text-center py-5">
-              <div
-                className="spinner-border text-success"
-                role="status"
-              />
-            </div>
-          ) : (
-            paginatedProducts.map(
-              (item, i) => (
-                <div
-                  className="product-item"
-                  key={
-                    item.id || i
-                  }
-                >
-                  <div className="product-card">
-                    <div className="img-box">
-                      <img
-                        src={
-                          item.image ||
-                          "/no-image.png"
-                        }
-                        className="product-img-top"
-                        alt={
-                          item.title
-                        }
-                      />
-                    </div>
+          <h1>
 
-                    <div className="p-3">
-                      <h5>
-                        {item.title}
-                      </h5>
+            Our Products
 
-                      <div className="product-info small text-muted">
-                        <div>
-                          <b>
-                            Brand:
-                          </b>{" "}
-                          {item.brand ||
-                            "-"}
+            {
+
+              validCity &&
+
+              ` in ${validCity}`
+
+            }
+
+          </h1>
+
+          <p>
+
+            Trusted Laboratory &
+            Diagnostic Products
+
+          </p>
+
+        </div>
+
+      </section>
+
+
+
+      <section className="product-page">
+
+        <div className="container-fluid">
+
+          <div className="row">
+
+            {/* =====================
+                  SIDEBAR
+            ====================== */}
+
+            <div className="col-lg-3">
+
+              <div className="category-sidebar">
+
+                <div className="sidebar-title">
+
+                  Categories
+
+                </div>
+
+                <div className="sidebar-search">
+
+                  <input
+
+                    type="text"
+
+                    placeholder="Search..."
+
+                    value={search}
+
+                    onChange={(e)=>
+
+                      setSearch(
+
+                        e.target.value
+
+                      )
+
+                    }
+
+                  />
+
+                </div>
+
+                <div className="category-list">
+
+                  {
+
+                    Object.keys(
+
+                      groupedProducts
+
+                    ).map((category)=>(
+
+                      <div
+
+                        key={category}
+
+                        className="category-item"
+
+                      >
+
+                        <button
+
+                          className={`category-btn
+
+                          ${activeCategory===category
+
+                          ?"active"
+
+                          :""}
+
+                          `}
+
+                          onClick={()=>
+
+                            toggleCategory(
+
+                              category
+
+                            )
+
+                          }
+
+                        >
+
+                          <span>
+
+                            {
+
+                              openedCategory===category
+
+                              ?
+
+                              <FiChevronDown/>
+
+                              :
+
+                              <FiChevronRight/>
+
+                            }
+
+                            {category}
+
+                          </span>
+
+                          <span className="count">
+
+                            {
+
+                              groupedProducts[category].length
+
+                            }
+
+                          </span>
+
+                        </button>
+
+                    <div
+                      className="category-content"
+                      style={{
+                      maxHeight:
+                      openedCategory===category
+                      ? groupedProducts[category].length * 45 + "px"
+                      : "0px"
+                      }}
+                      >
+
+                          {
+
+                            groupedProducts[category]
+
+                            .map((item,index)=>(
+
+                              <button
+
+                                // key={`${item.slug}-${index}`}
+                                key={item.uid}
+
+                                className="product-link"
+
+                                onClick={() =>
+                                scrollToProduct(item.slug, category)
+                              }
+
+                              >
+
+                                {item.title}
+
+                              </button>
+
+                            ))
+
+                          }
+
                         </div>
 
-                        <div>
-                          <b>
-                            Size:
-                          </b>{" "}
-                          {item.size ||
-                            "-"}
-                        </div>
-
-                        <div>
-                          <b>
-                            Usage:
-                          </b>{" "}
-                          {item.usage ||
-                            "-"}
-                        </div>
                       </div>
 
-                      <button
-                        className="btn btn-success w-100"
-                        onClick={() => {
-                          const productSlug =
-                            item.title
-                              ?.toLowerCase()
-                              .trim()
-                              .replace(
-                                /[^a-z0-9\s-]/g,
-                                ""
-                              )
-                              .replace(
-                                /\s+/g,
-                                "-"
-                              );
+                    ))
 
-                          router.push(
-                            citySlug
-                              ? `/${citySlug}/products/${productSlug}`
-                              : `/products/${productSlug}`
-                          );
-                        }}
-                      >
-                        View Details
-                      </button>
-                    </div>
-                  </div>
+                  }
+
                 </div>
-              )
-            )
-          )}
-        </div>
 
-        {/* PAGINATION */}
-        <div className="pagination-card">
-          <div className="page-size">
-            <span>Show:</span>
+              </div>
 
-            <select
-              value={
-                itemsPerPage
+            </div>
+
+            {/* =====================
+                 RIGHT START
+            ====================== */}
+
+            <div className="col-lg-9">
+
+              <div className="filter-card">
+
+                <div className="row">
+
+                  <div className="col-lg-10">
+
+                    <input
+
+                      type="text"
+
+                      className="form-control"
+
+                      placeholder="Search Product..."
+
+                      value={search}
+
+                      onChange={(e)=>
+
+                        setSearch(
+
+                          e.target.value
+
+                        )
+
+                      }
+
+                    />
+
+                  </div>
+
+                  <div className="col-lg-2">
+
+                    <button
+
+                      className="btn-reset"
+
+                      onClick={resetSearch}
+
+                    >
+
+                      Reset
+
+                    </button>
+
+                  </div>
+
+                </div>
+
+              </div>
+
+                            {
+
+                Object.entries(
+
+                  paginatedGroupedProducts
+
+                ).map(
+
+                  ([category, list]) => (
+
+                    <div
+
+                      key={category}
+
+                      id={category
+
+                        .replace(/\s+/g, "-")
+
+                        .toLowerCase()}
+
+                      className="product-section"
+
+                    >
+
+                      <div className="section-title">
+
+                        <h3>
+
+                          {category}
+
+                        </h3>
+
+                        <span>
+
+                          {
+
+                            groupedProducts[category]
+
+                              ?.length || 0
+
+                          }
+
+                          {" "}Products
+
+                        </span>
+
+                      </div>
+
+                      {
+
+                        list.map(
+
+                          (item, index) => (
+
+                            <div
+
+                              key={`${item.slug}-${index}`}
+
+                              id={item.slug}
+
+                              className="product-list-card"
+
+                            >
+
+                              <div className="row align-items-center">
+
+                                {/* IMAGE */}
+
+                                <div className="col-lg-3 col-md-4">
+
+                                  <div className="list-image">
+
+                                    <img
+
+                                      src={
+
+                                        item.image ||
+
+                                        "/no-image.png"
+
+                                      }
+
+                                      alt={item.title}
+
+                                    />
+
+                                  </div>
+
+                                </div>
+
+                                {/* DETAILS */}
+
+                                <div className="col-lg-6 col-md-5">
+
+                                  <div className="list-content">
+
+                                    <h4>
+
+                                      {item.title}
+
+                                    </h4>
+
+                                    <p>
+
+                                      {
+
+                                        item.description ||
+
+                                        item.desc ||
+
+                                        "No description available."
+
+                                      }
+
+                                    </p>
+
+                                    <div className="spec-grid">
+
+                                      <div>
+
+                                        <b>Brand</b>
+
+                                        <span>
+
+                                          {
+
+                                            item.brand ||
+
+                                            "-"
+
+                                          }
+
+                                        </span>
+
+                                      </div>
+
+                                      <div>
+
+                                        <b>Usage</b>
+
+                                        <span>
+
+                                          {
+
+                                            item.usage ||
+
+                                            "-"
+
+                                          }
+
+                                        </span>
+
+                                      </div>
+
+                                      <div>
+
+                                        <b>Size</b>
+
+                                        <span>
+
+                                          {
+
+                                            item.size ||
+
+                                            "-"
+
+                                          }
+
+                                        </span>
+
+                                      </div>
+
+                                      <div>
+
+                                        <b>Model</b>
+
+                                        <span>
+
+                                          {
+
+                                            item.model ||
+
+                                            "-"
+
+                                          }
+
+                                        </span>
+
+                                      </div>
+
+                                    </div>
+
+                                  </div>
+
+                                </div>
+
+                                {/* BUTTONS */}
+
+                                <div className="col-lg-3 col-md-3">
+
+                                  <div className="product-action">
+
+                                    <button
+
+                                      className="btn-view"
+
+                                      onClick={()=>
+
+                                        viewDetails(item)
+
+                                      }
+
+                                    >
+
+                                      View Details
+
+                                    </button>
+
+                                    {/* <button
+
+                                      className="btn-enquiry"
+
+                                    >
+
+                                      Get Quote
+
+                                    </button> */}
+
+                                  </div>
+
+                                </div>
+
+                              </div>
+
+                            </div>
+
+                          )
+
+                        )
+
+                      }
+
+                    </div>
+
+                  )
+
+                )
+
               }
-              onChange={(e) => {
-                const value =
-                  e.target.value ===
-                    "all"
-                    ? "all"
-                    : Number(
-                      e.target.value
-                    );
 
-                setItemsPerPage(
-                  value
-                );
-              }}
-            >
-              <option value={10}>
-                10
-              </option>
-              <option value={25}>
-                25
-              </option>
-              <option value={50}>
-                50
-              </option>
-              <option value={100}>
-                100
-              </option>
-              <option value="all">
-                All
-              </option>
-            </select>
+              {/* PAGINATION START */}
+
+                            {/* PAGINATION */}
+
+              <div className="pagination-card">
+
+                <div className="page-left">
+
+                  <span>
+
+                    Show
+
+                  </span>
+
+                  <select
+
+                    className="custom-select"
+
+                    value={itemsPerPage}
+
+                    onChange={(e) => {
+
+                      const value =
+
+                        e.target.value === "all"
+
+                          ? "all"
+
+                          : Number(e.target.value);
+
+                      setItemsPerPage(value);
+
+                      setCurrentPage(1);
+
+                    }}
+
+                  >
+
+                    <option value={10}>10</option>
+
+                    <option value={25}>25</option>
+
+                    <option value={50}>50</option>
+
+                    <option value={100}>100</option>
+
+                    <option value="all">
+
+                      All
+
+                    </option>
+
+                  </select>
+
+                </div>
+
+                {
+
+                  itemsPerPage !== "all" && (
+
+                    <div className="page-right">
+
+                      <button
+
+                        className="btn"
+
+                        disabled={
+
+                          currentPage === 1
+
+                        }
+
+                        onClick={() =>
+
+                          setCurrentPage(
+
+                            (p) => p - 1
+
+                          )
+
+                        }
+
+                      >
+
+                        ◀
+
+                      </button>
+
+                      <button
+
+                        className="btn btn-primary"
+
+                      >
+
+                        {
+
+                          currentPage
+
+                        }
+
+                      </button>
+
+                      <button
+
+                        className="btn"
+
+                        disabled={
+
+                          currentPage === totalPages
+
+                        }
+
+                        onClick={() =>
+
+                          setCurrentPage(
+
+                            (p) => p + 1
+
+                          )
+
+                        }
+
+                      >
+
+                        ▶
+
+                      </button>
+
+                    </div>
+
+                  )
+
+                }
+
+              </div>
+
+            </div>
+
           </div>
 
-          {itemsPerPage !==
-            "all" && (
-              <div className="pagination">
-                <button
-                  disabled={
-                    currentPage ===
-                    1
-                  }
-                  onClick={() =>
-                    setCurrentPage(
-                      (p) => p - 1
-                    )
-                  }
-                >
-                  ◀
-                </button>
-
-                <span>
-                  {currentPage} /{" "}
-                  {totalPages}
-                </span>
-
-                <button
-                  disabled={
-                    currentPage ===
-                    totalPages
-                  }
-                  onClick={() =>
-                    setCurrentPage(
-                      (p) => p + 1
-                    )
-                  }
-                >
-                  ▶
-                </button>
-              </div>
-            )}
         </div>
-      </div>
-    </div>
+
+      </section>
+
+    </>
+
   );
+
 }
