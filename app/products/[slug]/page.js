@@ -34,7 +34,7 @@ export default function ProductDetailPage() {
 
             const products = snap.data().products || [];
 // TEMPORARY
-setProduct(products[0]);
+    setProduct(products[0]);
         };
 
         fetchProduct();
@@ -119,11 +119,8 @@ setProduct(products[0]);
     return (
         <>
             <Toaster position="top-right" />
-
             <div className="container py-5 mt-5">
-
                 <div className="row g-5">
-
                     <div className="col-lg-5 d-flex align-items-center">
 
                         <div className="border rounded p-3 bg-white shadow-sm w-100">
@@ -137,51 +134,47 @@ setProduct(products[0]);
                         </div>
 
                     </div>
-
                     <div className="d-flex gap-3 mt-3 flex-wrap">
+                        {/* Dynamic Image */}
+                        <img
+                            src={product.image || "/no-image.png"}
+                            className="thumb-image active-thumb"
+                            alt=""
+                        />
 
-    {/* Dynamic Image */}
-    <img
-        src={product.image || "/no-image.png"}
-        className="thumb-image active-thumb"
-        alt=""
-    />
+                        {/* Dummy Images */}
+                        <img
+                            src="https://placehold.co/100x100?text=Image+2"
+                            className="thumb-image"
+                            alt=""
+                        />
 
-    {/* Dummy Images */}
+                        <img
+                            src="https://placehold.co/100x100?text=Image+3"
+                            className="thumb-image"
+                            alt=""
+                        />
 
-    <img
-        src="https://placehold.co/100x100?text=Image+2"
-        className="thumb-image"
-        alt=""
-    />
+                        <img
+                            src="https://placehold.co/100x100?text=Image+4"
+                            className="thumb-image"
+                            alt=""
+                        />
 
-    <img
-        src="https://placehold.co/100x100?text=Image+3"
-        className="thumb-image"
-        alt=""
-    />
+                        {/* Video */}
 
-    <img
-        src="https://placehold.co/100x100?text=Image+4"
-        className="thumb-image"
-        alt=""
-    />
+                        <div className="media-thumb">
+                            🎥
+                            <small>Video</small>
+                        </div>
 
-    {/* Video */}
+                        {/* PDF */}
 
-    <div className="media-thumb">
-        🎥
-        <small>Video</small>
-    </div>
-
-    {/* PDF */}
-
-    <div className="media-thumb">
-        📄
-        <small>PDF</small>
-    </div>
-
-</div>
+                        <div className="media-thumb">
+                            📄
+                            <small>PDF</small>
+                        </div>
+                    </div>
 
                     <div className="col-lg-7">
 
