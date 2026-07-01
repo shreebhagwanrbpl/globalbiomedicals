@@ -33,19 +33,19 @@ export default function ProductDetailPage() {
             if (!snap.exists()) return;
 
             const products = snap.data().products || [];
-// TEMPORARY
-    setProduct(products[0]);
-        };
+                // TEMPORARY
+                    setProduct(products[0]);
+                        };
 
-        fetchProduct();
-    }, [slug]);
+                        fetchProduct();
+                    }, [slug]);
 
-    const handleChange = (e) => {
-        setForm({
-            ...form,
-            [e.target.name]: e.target.value,
-        });
-    };
+                    const handleChange = (e) => {
+                        setForm({
+                            ...form,
+                            [e.target.name]: e.target.value,
+                        });
+                    };
 
     const handleSubmit = async () => {
         const { name, email, phone } = form;
@@ -122,17 +122,13 @@ export default function ProductDetailPage() {
             <div className="container py-5 mt-5">
                 <div className="row g-5">
                     <div className="col-lg-5 d-flex align-items-center">
-
                         <div className="border rounded p-3 bg-white shadow-sm w-100">
-
                             <img
                                 src={product.image || "/no-image.png"}
                                 alt={product.title}
                                 className="img-fluid w-100"
                             />
-
                         </div>
-
                     </div>
                     <div className="d-flex gap-3 mt-3 flex-wrap">
                         {/* Dynamic Image */}
@@ -177,7 +173,6 @@ export default function ProductDetailPage() {
                     </div>
 
                     <div className="col-lg-7">
-
                         <h1 className="fw-bold mb-3">
                             {product.title}
                         </h1>
